@@ -1,0 +1,21 @@
+name: Claude PR Review Agent
+on:
+  pull_request:
+    types: [opened, synchronize]
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Structured PR Review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node bounty-4-pr-review-agent/claude-review.mjs --pr ${{ github.event.pull_request.html_url }} > review.md
+          gh pr comment ${{ github.event.pull_request.number }} --body-file review.md
